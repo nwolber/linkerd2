@@ -9,7 +9,7 @@ git_sha_head() {
 go_deps_sha() {
     bindir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
     rootdir="$( cd $bindir/.. && pwd )"
-    cat $rootdir/Gopkg.lock $rootdir/Dockerfile-go-deps | shasum - | awk '{print $1}' |cut -c 1-8
+    echo "$(cat $rootdir/Gopkg.lock $rootdir/Dockerfile-go-deps | shasum - | awk '{print $1}' |cut -c 1-8)$(platform_extension)"
 }
 
 clean_head() {
@@ -17,14 +17,14 @@ clean_head() {
 }
 
 named_tag() {
-    echo "$(git name-rev --tags --name-only $(git_sha_head))"
+    echo "$(git name-rev --tags --name-only $(git_sha_head))$(platform_extension)"
 }
 
 head_root_tag() {
     if clean_head ; then
         clean_head_root_tag
     else
-        echo "dev-$(git_sha_head)-$USER"
+        echo "dev-$(git_sha_head)-$USER$(platform_extension)"
     fi
 }
 
@@ -33,11 +33,27 @@ clean_head_root_tag() {
         if [ "$(named_tag)" != "undefined" ]; then
             echo "$(named_tag)"
         else
-            echo "git-$(git_sha_head)"
+            echo "git-$(git_sha_head)$(platform_extension)"
         fi
     else
         echo "Commit unstaged changes." >&2
         exit 3
+    fi
+}
+
+platform_extension() {
+    if [ -z ${NO_PLATFORM:-} ]; then
+        case ${LINKERD_ARCH:-} in
+        "arm")
+            echo "-arm"
+            ;;
+        "arm64")
+            echo "-arm64"
+            ;;
+        *)
+            echo "-amd64"
+            ;;
+        esac
     fi
 }
 

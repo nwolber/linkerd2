@@ -1,3 +1,5 @@
+ARG BASE_IMAGE
+ARG GODEPS_IMAGE
 ## bundle web assets
 FROM node:10 as webpack-bundle
 RUN curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.7.0
@@ -24,16 +26,19 @@ ENV NODE_ENV production
 RUN $ROOT/bin/web build
 
 ## compile go server
-FROM gcr.io/linkerd-io/go-deps:6a07271e as golang
+FROM ${GODEPS_IMAGE} as golang
 WORKDIR /go/src/github.com/linkerd/linkerd2
 COPY web web
 COPY controller controller
 COPY pkg pkg
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o web/web ./web
+ARG GOOS
+ARG GOARCH
+ARG GOARM
+RUN CGO_ENABLED=0 GOOS=${GOOS} GOARCH=${GOARCH} GOARM=${GOARM} go build -o web/web ./web
 
 ## package it all up
-FROM gcr.io/linkerd-io/base:2017-10-30.01
+FROM ${BASE_IMAGE}
 COPY --from=golang /go/src/github.com/linkerd/linkerd2/web .
 RUN mkdir -p ./dist
 COPY --from=webpack-bundle /go/src/github.com/linkerd/linkerd2/web/app/dist ./dist

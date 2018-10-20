@@ -13,6 +13,9 @@ bindir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 . $bindir/_docker.sh
 . $bindir/_tag.sh
+. $bindir/_env.sh
+
+prepare_env
 
 tag=$(go_deps_sha)
 

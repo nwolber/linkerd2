@@ -1,13 +1,17 @@
 ## compile controller services
-FROM gcr.io/linkerd-io/go-deps:6a07271e as golang
+ARG GODEPS_IMAGE
+FROM ${GODEPS_IMAGE} as golang
 WORKDIR /go/src/github.com/linkerd/linkerd2
 COPY controller/gen controller/gen
 COPY pkg pkg
 COPY controller controller
 
 # use `install` so that we produce multiple binaries
-RUN CGO_ENABLED=0 GOOS=linux go install ./pkg/...
-RUN CGO_ENABLED=0 GOOS=linux go install ./controller/cmd/...
+ARG GOOS
+ARG GOARCH
+ARG GOARM
+RUN CGO_ENABLED=0 GOOS=${GOOS} GOARCH=${GOARCH} GOARM=${GOARM} go install ./pkg/...
+RUN CGO_ENABLED=0 GOOS=${GOOS} GOARCH=${GOARCH} GOARM=${GOARM} go install ./controller/cmd/...
 
 ## package runtime
 FROM scratch

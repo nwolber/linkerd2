@@ -12,6 +12,9 @@ rootdir="$( cd $bindir/.. && pwd )"
 
 . $bindir/_docker.sh
 . $bindir/_tag.sh
+. $bindir/_env.sh
+
+prepare_env
 
 dockerfile=$rootdir/web/Dockerfile
 

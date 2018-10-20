@@ -12,7 +12,19 @@ rootdir="$( cd $bindir/.. && pwd )"
 
 . $bindir/_docker.sh
 . $bindir/_tag.sh
+. $bindir/_env.sh
+prepare_env
 
 dockerfile=$rootdir/grafana/Dockerfile
+
+BASE_IMAGE="grafana/grafana:5.2.4"
+case ${LINKERD_ARCH:-} in
+"arm")
+    BASE_IMAGE="carlosedp/monitoring-grafana:v5.2.4-arm"
+    ;;
+"arm64")
+    BASE_IMAGE="carlosedp/monitoring-grafana:v5.2.4-arm64"
+    ;;
+esac
 
 docker_build grafana "$(head_root_tag)" $dockerfile

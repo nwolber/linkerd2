@@ -14,10 +14,17 @@ rootdir="$( cd $bindir/.. && pwd )"
 
 . $bindir/_docker.sh
 
+dockerfile=Dockerfile-base
 tag="2017-10-30.01"
+
+LINKERD_ARCH=${LINKERD_ARCH:-}
+if [ ! -z "$LINKERD_ARCH" ] && [ $LINKERD_ARCH != "amd64" ]; then
+    dockerfile=$dockerfile-$LINKERD_ARCH
+fi
+tag=$tag-$LINKERD_ARCH
 
 if (docker_pull base "${tag}"); then
     echo "$(docker_repo base):${tag}"
 else
-    docker_build base "${tag}" $rootdir/Dockerfile-base
+    docker_build base "${tag}" $rootdir/$dockerfile
 fi

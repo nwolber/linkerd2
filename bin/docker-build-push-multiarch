@@ -1,0 +1,38 @@
+#!/bin/bash
+
+set -eu
+
+bindir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+. $bindir/_docker.sh
+. $bindir/_tag.sh
+
+images="controller web proxy-init grafana proxy"
+architectures="amd64 arm arm64"
+
+for arch in $architectures; do
+    # Remove the golang image so 'docker pull' will download the proper version for this architecture.
+    # This circumvents issues with the directory were binaries are placed by go build, when
+    # cross-compiling (i.e. binaries will always be placed in /go/bin and not e.g. in /go/linux_arm/bin).
+    docker image remove golang:1.10.3
+    LINKERD_SKIP_CLI_CONTAINER=1 LINKERD_ARCH=$arch bin/docker-build
+done
+
+# before images can be used in a manifest list they have to be pushed to a registry
+for image in $images; do
+    for arch in $architectures; do
+        tag="$(LINKERD_ARCH=$arch head_root_tag)"
+        docker_push $image $tag
+    done
+done
+
+for image in $images; do
+    if (docker_manifest_create $image $architectures); then
+        for arch in $architectures; do
+            # Since most images are built "FROM scratch" they inherently have the platform linux/amd64.
+            # We have to fix this in the manifest list, so the docker daemon will pull the correct image for the platform.
+            docker_manifest_annotate $image $arch
+        done
+        docker_manifest_push $image
+    fi
+done

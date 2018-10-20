@@ -1,3 +1,7 @@
+ARG GOOS
+ARG GOARCH
+ARG GOARM
+
 # Go dependencies
 #
 # Fetches all required Go dependencies. All Linkerd sources are omitted from the resulting
@@ -35,7 +39,7 @@ WORKDIR /
 #
 # This list was derived from the output of `find /go/pkg -type f`
 # after building the controller.
-RUN CGO_ENABLED=0 GOOS=linux go install \
+RUN CGO_ENABLED=0 GOOS=${GOOS} GOARCH=${GOARCH} GOARM=${GOARM} go install \
     github.com/golang/protobuf/jsonpb \
     github.com/grpc-ecosystem/go-grpc-prometheus \
     github.com/prometheus/client_golang/api \

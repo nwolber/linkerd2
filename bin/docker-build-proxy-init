@@ -12,6 +12,9 @@ rootdir="$( cd $bindir/.. && pwd )"
 
 . $bindir/_docker.sh
 . $bindir/_tag.sh
+. $bindir/_env.sh
+
+prepare_env
 
 dockerfile=$rootdir/proxy-init/Dockerfile
 
@@ -22,4 +25,5 @@ validate_go_deps_tag $dockerfile
     $bindir/docker-build-go-deps
 ) >/dev/null
 
+echo "GODEPS ${GODEPS_IMAGE:-}"
 docker_build proxy-init "$(head_root_tag)" $dockerfile
